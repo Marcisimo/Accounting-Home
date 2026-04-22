@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate NPV Calculator</title>
+    
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Load Babel to translate the React JSX code in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-100">
+    <div id="root"></div>
+
+    <!-- The React Application Code -->
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // --- Inline SVG Icons (replacing the lucide-react library for standalone use) ---
+        const Calculator = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <rect width="16" height="20" x="4" y="2" rx="2"></rect>
+                <line x1="8" x2="16" y1="6" y2="6"></line>
+                <line x1="16" x2="16" y1="14" y2="18"></line>
+                <path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path>
+                <path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path>
+                <path d="M8 18h.01"></path>
+            </svg>
+        );
+
+        const CheckCircle2 = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <path d="m9 11 3 3L22 4"></path>
+            </svg>
+        );
+
+        const XCircle = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m15 9-6 6"></path>
+                <path d="m9 9 6 6"></path>
+            </svg>
+        );
+
+        // --- Components ---
+        const InputField = ({ label, value, onChange, icon: Icon, prefix, suffix, type = "number", step = "1", placeholder }) => (
+            <div className="flex flex-col gap-1.5 mb-4">
+                <label className="text-sm font-medium text-slate-700">{label}</label>
+                <div className="relative flex items-center">
+                    {Icon && <Icon className="absolute left-3 w-4 h-4 text-slate-400" />}
+                    {prefix && <span className="absolute left-3 text-slate-500">{prefix}</span>}
+                    <input
+                        type={type}
+                        step={step}
+                        placeholder={placeholder}
+                        className={`w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+                            prefix ? 'pl-8' : ''
+                        }`}
+                        value={value}
+                        onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+                    />
+                    {suffix && <span className="absolute right-3 text-slate-500">{suffix}</span>}
+                </div>
+            </div>
+        );
+
+        const ResultRow = ({ num, title, value, highlight, subtitle }) => (
+            <div className={`p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2 border ${
+                highlight ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100'
+            }`}>
+                <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700">
+                        <span className="text-blue-600 mr-2">Q{num}.</span>
+                        {title}
+                    </span>
+                    {subtitle && <span className="text-xs text-slate-500 mt-1">{subtitle}</span>}
+                </div>
+                <span className={`text-lg font-bold tracking-tight ${
+                    typeof value === 'number' 
+                        ? (value < 0 ? 'text-red-600' : 'text-emerald-600') 
+                        : 'text-slate-800'
+                } sm:text-right`}>
+                    {typeof value === 'number' ? formatCurrency(value) : value}
+                </span>
+            </div>
+        );
+
+        const formatCurrency = (amount) => {
+            if (amount === undefined || isNaN(amount)) return '$0';
+            const rounded = Math.round(amount);
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(rounded);
+        };
+
+        // --- Main App ---
+        function App() {
+            const [purchasePrice, setPurchasePrice] = useState('');
+            const [downPaymentPct, setDownPaymentPct] = useState('');
+            const [years, setYears] = useState('');
+            const [mortgagePayment, setMortgagePayment] = useState('');
+            const [propertyTax, setPropertyTax] = useState('');
+            const [hoaMaintenance, setHoaMaintenance] = useState('');
+            const [repairCost, setRepairCost] = useState('');
+            const [repairYear, setRepairYear] = useState('');
+            const [rentalIncome, setRentalIncome] = useState('');
+            const [depreciation, setDepreciation] = useState('');
+            const [salePrice, setSalePrice] = useState('');
+            
+            const [cocRate, setCocRate] = useState('');
+            const [taxRatePct, setTaxRatePct] = useState('');
+            const [tableDecimals, setTableDecimals] = useState('');
+
+            const results = useMemo(() => {
+                const pPrice = Number(purchasePrice) || 0;
+                const downPct = Number(downPaymentPct) || 0;
+                const mPayment = Number(mortgagePayment) || 0;
+                const pTax = Number(propertyTax) || 0;
+                const hoa = Number(hoaMaintenance) || 0;
+                const rCost = Number(repairCost) || 0;
+                const rYear = Number(repairYear) || 0;
+                const rentInc = Number(rentalIncome) || 0;
+                const depr = Number(depreciation) || 0;
+                const sPrice = Number(salePrice) || 0;
+
+                const r = (Number(cocRate) || 0) / 100;
+                const n = Number(years) || 0;
+                const taxRate = (Number(taxRatePct) || 0) / 100;
+                const afterTaxMulti = 1 - taxRate;
+                const dec = tableDecimals === '' ? 3 : Number(tableDecimals);
+
+                const pvif = (rate, periods) => Number((1 / Math.pow(1 + rate, periods)).toFixed(dec));
+                const pvifa = (rate, periods) => rate === 0 ? periods : Number(((1 - Math.pow(1 + rate, -periods)) / rate).toFixed(dec));
+                
+                const roundItem = (val) => Math.round(Math.abs(val)) * (val < 0 ? -1 : 1);
+
+                const downPaymentValue = pPrice * (downPct / 100);
+                const pvDownPayment = roundItem(-downPaymentValue); 
+
+                const principalValue = pPrice - downPaymentValue;
+                const pvPrincipal = roundItem(-principalValue * pvif(r, n));
+
+                const afterTaxInterest = mPayment * afterTaxMulti;
+                const pvMortgageInterest = roundItem(-afterTaxInterest * pvifa(r, n));
+
+                const afterTaxPropTax = pTax * afterTaxMulti;
+                const pvPropTax = roundItem(-afterTaxPropTax * pvifa(r, n));
+
+                const afterTaxHoa = hoa * afterTaxMulti;
+                const pvHoa = roundItem(-afterTaxHoa * pvifa(r, n));
+
+                const afterTaxRepair = rCost * afterTaxMulti;
+                const pvRepair = roundItem(-afterTaxRepair * pvif(r, rYear));
+
+                const afterTaxRent = rentInc * afterTaxMulti;
+                const pvRent = roundItem(afterTaxRent * pvifa(r, n));
+
+                const taxBenefitDepr = depr * taxRate;
+                const pvDeprBenefit = roundItem(taxBenefitDepr * pvifa(r, n));
+
+                const pvSale = roundItem(sPrice * pvif(r, n));
+
+                const npv = pvDownPayment + pvPrincipal + pvMortgageInterest + pvPropTax + pvHoa + pvRepair + pvRent + pvDeprBenefit + pvSale;
+
+                const irrIsGreater = npv > 0;
+                const irrExplanation = npv > 0 
+                    ? `IRR is GREATER than COC. We know this because NPV is > Zero.`
+                    : npv < 0
+                    ? `COC is GREATER than IRR. We know this because NPV < Zero.`
+                    : `IRR is EQUAL to COC. The NPV is exactly zero.`;
+
+                const ncf = 
+                    (-downPaymentValue) + 
+                    (-principalValue) + 
+                    (-afterTaxInterest * n) + 
+                    (-afterTaxPropTax * n) + 
+                    (-afterTaxHoa * n) + 
+                    (-afterTaxRepair) + 
+                    (afterTaxRent * n) + 
+                    (taxBenefitDepr * n) + 
+                    (sPrice);
+
+                const isGoodInvestment = npv > 0;
+                const goodInvExplanation = isGoodInvestment
+                    ? `YES. Based on the NPV rule, the investment has a positive NPV, so IRR > COC.`
+                    : `NO. COC > IRR, because NPV is less than 0.`;
+
+                return {
+                    pvDownPayment, pvPrincipal, pvMortgageInterest, pvPropTax, pvHoa, pvRepair, pvRent, pvDeprBenefit, pvSale,
+                    npv, irrExplanation, ncf, isGoodInvestment, goodInvExplanation
+                };
+            }, [
+                purchasePrice, downPaymentPct, years, mortgagePayment, propertyTax, 
+                hoaMaintenance, repairCost, repairYear, rentalIncome, depreciation, 
+                salePrice, cocRate, taxRatePct, tableDecimals
+            ]);
+
+            return (
+                <div className="min-h-screen text-slate-900 font-sans p-4 sm:p-6 lg:p-8">
+                    <div className="max-w-7xl mx-auto space-y-6">
+                        
+                        <header className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center gap-4">
+                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shrink-0">
+                                <Calculator className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Real Estate Investment NPV Calculator</h1>
+                                <p className="text-slate-500 text-sm mt-1">Solves NPV, Present Value components, and Cash Flows based on standard accounting rules.</p>
+                            </div>
+                        </header>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                            <div className="lg:col-span-4 space-y-6">
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">Property & Loan Basics</h2>
+                                    <InputField label="Purchase Price" prefix="$" value={purchasePrice} onChange={setPurchasePrice} placeholder="800000" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <InputField label="Down Payment" suffix="%" value={downPaymentPct} onChange={setDownPaymentPct} placeholder="30" />
+                                        <InputField label="Years to Sell" suffix="yrs" value={years} onChange={setYears} placeholder="10" />
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">Annual Cash Flows & Tax</h2>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <InputField label="Rental Income" prefix="$" value={rentalIncome} onChange={setRentalIncome} placeholder="42000" />
+                                        <InputField label="Depreciation" prefix="$" value={depreciation} onChange={setDepreciation} placeholder="32000" />
+                                        <InputField label="Interest Pmt" prefix="$" value={mortgagePayment} onChange={setMortgagePayment} placeholder="35000" />
+                                        <InputField label="Property Tax" prefix="$" value={propertyTax} onChange={setPropertyTax} placeholder="12000" />
+                                    </div>
+                                    <InputField label="HOA / Maint." prefix="$" value={hoaMaintenance} onChange={setHoaMaintenance} placeholder="6000" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <InputField label="Repair Cost" prefix="$" value={repairCost} onChange={setRepairCost} placeholder="15000" />
+                                        <InputField label="Repair Year" value={repairYear} onChange={setRepairYear} placeholder="5" />
+                                    </div>
+                                    <InputField label="Estimated Sale Price" prefix="$" value={salePrice} onChange={setSalePrice} placeholder="1100000" />
+                                </div>
+
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b pb-2">Rates</h2>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <InputField label="Cost of Capital (RRR)" suffix="%" value={cocRate} onChange={setCocRate} placeholder="10" />
+                                        <InputField label="Tax Rate" suffix="%" value={taxRatePct} onChange={setTaxRatePct} placeholder="30" />
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-slate-100">
+                                        <InputField label="Table Decimals" value={tableDecimals} onChange={setTableDecimals} type="number" step="1" placeholder="3" />
+                                    </div>
+                                </div>
+
+                                <div className="text-xs text-slate-400 p-2 text-center bg-white rounded-lg border border-slate-200">
+                                    Note: Calculation factors (PVIF/PVIFA) are rounded according to the "Table Decimals" setting above to match printed accounting tables. Items are rounded individually, and NPV is their sum.
+                                </div>
+                            </div>
+
+                            <div className="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                                    Calculated Answers
+                                </h2>
+                                
+                                <div className="space-y-3">
+                                    <ResultRow num="1" title="PV of Down Payment" value={results.pvDownPayment} subtitle="Outflow at Year 0 (No Tax)" />
+                                    <ResultRow num="2" title="PV of Principal at End" value={results.pvPrincipal} subtitle={`Outflow at Year ${years || 'N'} (No Tax)`} />
+                                    <ResultRow num="3" title="PV of Mortgage Interest" value={results.pvMortgageInterest} subtitle="Annuity Outflow (After-Tax)" />
+                                    <ResultRow num="4" title="PV of Property Tax" value={results.pvPropTax} subtitle="Annuity Outflow (After-Tax)" />
+                                    <ResultRow num="5" title="PV of HOA & Maint." value={results.pvHoa} subtitle="Annuity Outflow (After-Tax)" />
+                                    <ResultRow num="6" title="PV of Repairs" value={results.pvRepair} subtitle={`Single Outflow at Year ${repairYear || 'N'} (After-Tax)`} />
+                                    <ResultRow num="7" title="PV of Rental Income" value={results.pvRent} subtitle="Annuity Inflow (After-Tax)" />
+                                    <ResultRow num="8" title="PV of Depreciation Tax Benefit" value={results.pvDeprBenefit} subtitle="Annuity Inflow (Tax Savings Only)" />
+                                    <ResultRow num="9" title="PV of Sale of Property" value={results.pvSale} subtitle={`Single Inflow at Year ${years || 'N'} (No Tax)`} />
+                                    
+                                    <div className="pt-4 mt-4 border-t border-slate-200">
+                                        <ResultRow num="10" title="Total Net Present Value (NPV)" value={results.npv} highlight={true} subtitle="Sum of Questions 1 through 9" />
+                                    </div>
+
+                                    <div className="pt-4 mt-4 border-t border-slate-200 flex flex-col gap-4">
+                                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                            <span className="text-sm font-semibold text-slate-700 block mb-2">
+                                                <span className="text-blue-600 mr-2">Q11.</span>
+                                                Which Rate is Greater: IRR or COC?
+                                            </span>
+                                            <p className="text-sm text-slate-600 leading-relaxed font-medium">{results.irrExplanation}</p>
+                                        </div>
+
+                                        <ResultRow num="12" title="Net Cash Inflow/Outflow" value={results.ncf} subtitle="Undiscounted Sum of All After-Tax Cash Flows" />
+
+                                        <div className={`p-4 border rounded-lg ${results.isGoodInvestment ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                                            <span className="text-sm font-semibold text-slate-700 block mb-2">
+                                                <span className="text-blue-600 mr-2">Q13.</span>
+                                                Is this a Good Investment?
+                                            </span>
+                                            <p className="text-sm text-slate-800 leading-relaxed font-medium flex items-start gap-2">
+                                                {results.isGoodInvestment ? <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5" /> : <XCircle className="w-5 h-5 text-red-600 mt-0.5" />}
+                                                {results.goodInvExplanation}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the app to the DOM
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

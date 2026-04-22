@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capital Budgeting Calculator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for in-browser JSX transpilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- Inline Icons (Replacing lucide-react for standalone HTML support) ---
+        const Calculator = ({ size = 24, className = '' }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16.01" y1="10" y2="10"/><line x1="16" x2="16.01" y1="14" y2="14"/><line x1="16" x2="16.01" y1="18" y2="18"/><line x1="8" x2="8.01" y1="10" y2="10"/><line x1="8" x2="8.01" y1="14" y2="14"/><line x1="12" x2="12.01" y1="10" y2="10"/><line x1="12" x2="12.01" y1="14" y2="14"/><line x1="8" x2="12" y1="18" y2="18"/></svg>
+        );
+        const DollarSign = ({ size = 24, className = '' }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        );
+        const TrendingUp = ({ size = 24, className = '' }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        );
+        const Info = ({ size = 24, className = '' }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        );
+        const ArrowRight = ({ size = 24, className = '' }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        );
+
+        // --- Main App Component ---
+        function App() {
+          // State for the inputs
+          const [inputs, setInputs] = useState({
+            cost: '',
+            life: '',
+            revInc: '',
+            expRed: '',
+            salvage: '',
+            rate: ''
+          });
+
+          // Handle input changes
+          const handleChange = (e) => {
+            const { name, value } = e.target;
+            setInputs((prev) => ({
+              ...prev,
+              [name]: value === '' ? '' : Number(value)
+            }));
+          };
+
+          // Helper to format currency
+          const formatCurrency = (val) => {
+            return new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(val || 0);
+          };
+
+          // ---------------------------------------------------------
+          // CALCULATIONS
+          // ---------------------------------------------------------
+          
+          const cost = inputs.cost || 0;
+          const life = inputs.life || 0;
+          const revInc = inputs.revInc || 0;
+          const expRed = inputs.expRed || 0;
+          const salvage = inputs.salvage || 0;
+          const rate = inputs.rate || 0;
+
+          // 1. Annual Cash Flow
+          const annualCF = revInc + expRed;
+
+          // 2. Table Factors (Rounded to 3 decimal places to mimic accounting tables exactly)
+          const rateDec = rate / 100;
+          let pvifa = 0;
+          let pvif = 0;
+
+          if (rateDec === 0) {
+            pvifa = life;
+            pvif = 1;
+          } else {
+            // PVIFA formula: [1 - (1 + r)^-n] / r
+            const rawPvifa = (1 - Math.pow(1 + rateDec, -life)) / rateDec;
+            pvifa = Math.round(rawPvifa * 1000) / 1000;
+
+            // PVIF formula: (1 + r)^-n
+            const rawPvif = Math.pow(1 + rateDec, -life);
+            pvif = Math.round(rawPvif * 1000) / 1000;
+          }
+
+          // 3. Present Values
+          const pvAnnuity = annualCF * pvifa;
+          const pvSalvage = salvage * pvif;
+          const totalPV = pvAnnuity + pvSalvage;
+          
+          // Q34: NPV
+          const npv = totalPV - cost;
+
+          // Q39: Simple Net Cash Flow (Ignore Time Value)
+          const simpleCF = (annualCF * life) + salvage - cost;
+
+          // Q40: Profitability Index
+          const pi = cost > 0 ? (totalPV / cost) : 0;
+
+          // Q41: Calculate IRR (Trial & Error to nearest integer percent)
+          let bestIrrDiff = Infinity;
+          let estimatedIrr = 0;
+
+          for (let r = 0; r <= 100; r++) {
+            const decR = r / 100;
+            let currentNpv = 0;
+
+            if (r === 0) {
+              currentNpv = (annualCF * life) + salvage - cost;
+            } else {
+              // Using table-matching rounded math (3 decimal places) for IRR trial & error
+              const rawIrrPvifa = (1 - Math.pow(1 + decR, -life)) / decR;
+              const roundedIrrPvifa = Math.round(rawIrrPvifa * 1000) / 1000;
+              
+              const rawIrrPvif = Math.pow(1 + decR, -life);
+              const roundedIrrPvif = Math.round(rawIrrPvif * 1000) / 1000;
+              
+              currentNpv = (annualCF * roundedIrrPvifa) + (salvage * roundedIrrPvif) - cost;
+            }
+
+            if (Math.abs(currentNpv) < bestIrrDiff) {
+              bestIrrDiff = Math.abs(currentNpv);
+              estimatedIrr = r;
+            }
+          }
+
+          // Determine text for Q35-Q38
+          const greaterRate = estimatedIrr > rate ? "Internal Rate of Return (IRR)" : 
+                             (estimatedIrr < rate ? "Cost of Capital" : "They are exactly equal");
+          
+          const knowAnswer = npv > 0 
+            ? "Because the NPV is positive, it mathematically guarantees that the project's Internal Rate of Return (IRR) exceeds the required Cost of Capital (discount rate)."
+            : (npv < 0 
+                ? "Because the NPV is negative, it mathematically indicates that the project is earning a return lower than the required Cost of Capital."
+                : "Because the NPV is exactly zero, the IRR equals the Cost of Capital.");
+
+          const shouldBuy = npv >= 0 ? "Yes" : "No";
+          
+          const whyBuy = npv >= 0 
+            ? "Because the investment has a positive Net Present Value (NPV), meaning the present value of future cash flows exceeds the initial cost, which will add value to the firm."
+            : "Because the investment has a negative Net Present Value (NPV), meaning the project costs more than the present value of the cash flows it generates, which would destroy firm value.";
+
+          return (
+            <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
+              <div className="max-w-6xl mx-auto space-y-6">
+                
+                {/* Header */}
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between">
+                  <div>
+                    <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                      <Calculator className="text-blue-600" />
+                      Capital Budgeting & NPV Calculator
+                    </h1>
+                    <p className="text-slate-500 mt-1">Easily solve equipment purchase decisions. Values automatically update as you type.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  
+                  {/* Inputs Section */}
+                  <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="bg-slate-800 px-5 py-4 border-b border-slate-200">
+                        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                          <DollarSign size={20} className="text-emerald-400" />
+                          Project Variables
+                        </h2>
+                      </div>
+                      <div className="p-5 space-y-4">
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Cost to Purchase Now ($)</label>
+                          <input type="number" name="cost" value={inputs.cost} onChange={handleChange} placeholder="300000"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Useful Life (Years)</label>
+                          <input type="number" name="life" value={inputs.life} onChange={handleChange} placeholder="10"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Annual Revenue Increase ($)</label>
+                          <input type="number" name="revInc" value={inputs.revInc} onChange={handleChange} placeholder="20000"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Annual Expense Reduction ($)</label>
+                          <input type="number" name="expRed" value={inputs.expRed} onChange={handleChange} placeholder="25000"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Salvage Value in {life || 'N'} Years ($)</label>
+                          <input type="number" name="salvage" value={inputs.salvage} onChange={handleChange} placeholder="60000"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Cost of Capital (%)</label>
+                          <input type="number" name="rate" value={inputs.rate} onChange={handleChange} placeholder="10"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Quick Workings Box */}
+                    <div className="bg-blue-50 rounded-xl border border-blue-200 p-5">
+                      <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                        <Info size={18} /> Show Your Work (Tables)
+                      </h3>
+                      <div className="text-sm text-blue-800 space-y-2">
+                        <p><strong>1. Net Annual Cash Flow:</strong><br/>{formatCurrency(revInc)} + {formatCurrency(expRed)} = {formatCurrency(annualCF)}</p>
+                        <p><strong>2. PVIFA ({rate}%, {life} periods):</strong> {pvifa.toFixed(3)}</p>
+                        <p><strong>3. PVIF ({rate}%, {life} periods):</strong> {pvif.toFixed(3)}</p>
+                        <p><strong>4. PV of Cash Flows:</strong><br/>({formatCurrency(annualCF)} × {pvifa.toFixed(3)}) = {formatCurrency(pvAnnuity)}</p>
+                        <p><strong>5. PV of Salvage:</strong><br/>({formatCurrency(salvage)} × {pvif.toFixed(3)}) = {formatCurrency(pvSalvage)}</p>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Outputs Section */}
+                  <div className="lg:col-span-8 space-y-6">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="bg-blue-600 px-5 py-4 border-b border-blue-700">
+                        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                          <TrendingUp size={20} className="text-blue-100" />
+                          Assignment Answers
+                        </h2>
+                      </div>
+                      
+                      <div className="p-6 space-y-6">
+                        
+                        {/* Q34 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">34) Compute the Total Net Present Value Benefit or (Cost) to Buy the New Equipment.</p>
+                          <div className={`text-2xl font-bold flex items-center gap-2 ${npv >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <ArrowRight size={20} className="text-slate-400" />
+                            {formatCurrency(npv)}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Formula: Total PV of Inflows ({formatCurrency(totalPV)}) - Initial Cost ({formatCurrency(cost)})
+                          </p>
+                        </div>
+
+                        {/* Q35 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">35) Which Rate is Greater on this Investment? the Internal Rate of Return or the Cost of Capital.</p>
+                          <div className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <ArrowRight size={20} className="text-slate-400" />
+                            {greaterRate}
+                          </div>
+                        </div>
+
+                        {/* Q36 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">36) How do you Know the Answer to the Question Above?</p>
+                          <div className="text-lg font-medium text-slate-800 flex items-start gap-2">
+                            <ArrowRight size={20} className="text-slate-400 mt-1 flex-shrink-0" />
+                            <span className="leading-snug">{knowAnswer}</span>
+                          </div>
+                        </div>
+
+                        {/* Q37 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">37) Should We Buy the New Equipment?</p>
+                          <div className={`text-2xl font-bold flex items-center gap-2 ${npv >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                            <ArrowRight size={20} className="text-slate-400" />
+                            {shouldBuy}
+                          </div>
+                        </div>
+
+                        {/* Q38 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">38) Why Should we Buy or Not Buy the Equipment?</p>
+                          <div className="text-lg font-medium text-slate-800 flex items-start gap-2">
+                            <ArrowRight size={20} className="text-slate-400 mt-1 flex-shrink-0" />
+                            <span className="leading-snug">{whyBuy}</span>
+                          </div>
+                        </div>
+
+                        {/* Q39 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">39) Compute the Simple Net Cash Flow+/(-) for this Project, Ignore Time Value.</p>
+                          <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                            <ArrowRight size={20} className="text-slate-400" />
+                            {formatCurrency(simpleCF)}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Formula: (Annual CF {formatCurrency(annualCF)} × {life} years) + Salvage {formatCurrency(salvage)} - Initial Cost {formatCurrency(cost)}
+                          </p>
+                        </div>
+
+                        {/* Q40 */}
+                        <div className="pb-4 border-b border-slate-100">
+                          <p className="text-slate-600 font-medium mb-1">40) Compute the Profitability Index for this Capital Investment Opportunity.</p>
+                          <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                            <ArrowRight size={20} className="text-slate-400" />
+                            {pi.toFixed(3)}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Formula: Present Value of Cash Flows ({formatCurrency(totalPV)}) ÷ Initial Cost ({formatCurrency(cost)})
+                          </p>
+                        </div>
+
+                        {/* Q41 */}
+                        <div className="pb-2">
+                          <p className="text-slate-600 font-medium mb-1">41) Compute the Internal Rate of Return to the Nearest Full Percent on this Investment.</p>
+                          <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                            <ArrowRight size={20} className="text-slate-400" />
+                            {estimatedIrr}%
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Found via Trial & Error: At {estimatedIrr}%, the Net Present Value is closest to $0.
+                          </p>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
