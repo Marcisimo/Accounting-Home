@@ -73,10 +73,18 @@
               title="1. Future Value of an Annuity (Savings)"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the amount you will have at the End of <Input val={years} set={setYears} placeholder="20" /> years. You can save $<Input val={pmt} set={setPmt} placeholder="3000" /> per year for the next {numYears} years, earning <Input val={rate} set={setRate} placeholder="6" />% Interest Compounded Annually.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the amount you will have at the End of 20 years. You can save $3,000 per year for the next 20 years, earning 6% Interest Compounded Annually.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <LabeledInput label="Years (n)" val={years} set={setYears} placeholder="20" />
+                  <LabeledInput label="Payment / Yr (PMT)" val={pmt} set={setPmt} placeholder="3000" />
+                  <LabeledInput label="Interest Rate (%)" val={rate} set={setRate} placeholder="6" />
+                </div>
+
                 <FormulaBox formula="FV = PMT × FVIFA(i, n)" tableFactor={`FVIFA(${numRate}%, ${numYears}) = ${factor}`} />
                 <VariablesBox vars={[
                   { label: "FV", desc: "Future Value (The total amount saved by the end)" },
@@ -104,10 +112,17 @@
               title="2. Simple Tax Cost on Revenues"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the Tax (Cost) or Benefit to a Business with $<Input val={revenue} set={setRevenue} placeholder="300000" /> in Revenues. Use a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="40" />%.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Tax (Cost) or Benefit to a Business with $300,000 in Revenues. Use a Tax Rate of 40%.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <LabeledInput label="Revenues ($)" val={revenue} set={setRevenue} placeholder="300000" />
+                  <LabeledInput label="Tax Rate (%)" val={taxRate} set={setTaxRate} placeholder="40" />
+                </div>
+
                 <FormulaBox formula="Tax Cost = Revenue × Tax Rate" />
                 <VariablesBox vars={[
                   { label: "Tax Cost", desc: "The amount of tax owed to the government (Expense)" },
@@ -137,10 +152,18 @@
               title="3. Monthly Mortgage Interest Cost After Tax"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the Monthly Mortgage Interest Cost after the Tax Benefit on an Interest Only Home Loan of $<Input val={loan} set={setLoan} placeholder="360000" />. Use an Interest Rate of <Input val={intRate} set={setIntRate} placeholder="5" />% and a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="30" />%.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Monthly Mortgage Interest Cost after the Tax Benefit on an Interest Only Home Loan of $360,000. Use an Interest Rate of 5% and a Tax Rate of 30%.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <LabeledInput label="Loan Amount ($)" val={loan} set={setLoan} placeholder="360000" />
+                  <LabeledInput label="Interest Rate (%)" val={intRate} set={setIntRate} placeholder="5" />
+                  <LabeledInput label="Tax Rate (%)" val={taxRate} set={setTaxRate} placeholder="30" />
+                </div>
+
                 <FormulaBox formula="Monthly After-Tax Interest = (Loan Amount × Interest Rate × (1 - Tax Rate)) / 12" />
                 <VariablesBox vars={[
                   { label: "Loan Amount", desc: "The principal amount of the mortgage" },
@@ -167,10 +190,17 @@
               title="4. Net Cost of a Tax Deductible Expense"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the Net Cost to a Business with Business Expense Costs of $<Input val={expense} set={setExpense} placeholder="500000" /> that are Tax Deductible. Use a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="30" />%.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Net Cost to a Business with Business Expense Costs of $500,000 that are Tax Deductible. Use a Tax Rate of 30%.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <LabeledInput label="Business Expense ($)" val={expense} set={setExpense} placeholder="500000" />
+                  <LabeledInput label="Tax Rate (%)" val={taxRate} set={setTaxRate} placeholder="30" />
+                </div>
+
                 <FormulaBox formula="Net Cost = Expense × (1 - Tax Rate)" />
                 <VariablesBox vars={[
                   { label: "Net Cost", desc: "The true out-of-pocket cost after tax savings are applied" },
@@ -196,10 +226,17 @@
               title="5. Annual Interest Earned"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the Annual Interest Earned. We Deposit $<Input val={deposit} set={setDeposit} placeholder="12000" /> in an Interest Bearing Account at a Rate of <Input val={rate} set={setRate} placeholder="5" />% Compounded Annually.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Annual Interest Earned. We Deposit $12,000 in an Interest Bearing Account at a Rate of 5% Compounded Annually.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <LabeledInput label="Deposit Amount ($)" val={deposit} set={setDeposit} placeholder="12000" />
+                  <LabeledInput label="Interest Rate (%)" val={rate} set={setRate} placeholder="5" />
+                </div>
+
                 <FormulaBox formula="Annual Interest = Deposit × Interest Rate" />
                 <VariablesBox vars={[
                   { label: "Annual Interest", desc: "The money earned in one single year" },
@@ -235,13 +272,19 @@
               title="6. Income Tax Expense (Net Income)"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700 leading-relaxed">
-                  Compute the Income Tax Expense Cost to a Business that has Revenues of $<Input val={revenue} set={setRevenue} placeholder="800000" />, 
-                  Expenses of $<Input val={expense} set={setExpense} placeholder="200000" />, 
-                  and Assets of $<Input val={assets} set={setAssets} placeholder="300000" />. 
-                  Use a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="40" />%.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Income Tax Expense Cost to a Business that has Revenues of $800,000, Expenses of $200,000, and Assets of $300,000. Use a Tax Rate of 40%.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <LabeledInput label="Revenues ($)" val={revenue} set={setRevenue} placeholder="800000" />
+                  <LabeledInput label="Expenses ($)" val={expense} set={setExpense} placeholder="200000" />
+                  <LabeledInput label="Assets ($)" val={assets} set={setAssets} placeholder="300000" />
+                  <LabeledInput label="Tax Rate (%)" val={taxRate} set={setTaxRate} placeholder="40" />
+                </div>
+
                 <FormulaBox formula="Tax Expense = (Revenues - Expenses) × Tax Rate" />
                 <VariablesBox vars={[
                   { label: "Revenues - Expenses", desc: "Equals your Taxable Income (Net Income)" },
@@ -270,10 +313,18 @@
               title="7. Present Value of a Capital Project"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the Value Today of a Capital Project that will generate $<Input val={cashFlow} set={setCashFlow} placeholder="50000" /> of Revenue Cash Flows Per Year for the next <Input val={years} set={setYears} placeholder="10" /> Years? Assume a Cost of Capital Rate of <Input val={rate} set={setRate} placeholder="10" />% with Annual Compounding and Ignore Income Taxes.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Value Today of a Capital Project that will generate $50,000 of Revenue Cash Flows Per Year for the next 10 Years? Assume a Cost of Capital Rate of 10% with Annual Compounding and Ignore Income Taxes.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <LabeledInput label="Annual Cash Flow ($)" val={cashFlow} set={setCashFlow} placeholder="50000" />
+                  <LabeledInput label="Years (n)" val={years} set={setYears} placeholder="10" />
+                  <LabeledInput label="Cost of Capital (%)" val={rate} set={setRate} placeholder="10" />
+                </div>
+
                 <FormulaBox formula="PV = Cash Flow × PVIFA(i, n)" tableFactor={`PVIFA(${numRate}%, ${numYears}) = ${factor}`} />
                 <VariablesBox vars={[
                   { label: "PV", desc: "Present Value (The Value Today of future cash flows)" },
@@ -304,10 +355,18 @@
               title="8. Sinking Fund (Savings Needed per Year)"
               answer={answer}
             >
-              <div className="space-y-4">
-                <p className="text-gray-700">
-                  Compute the Amount you need to Save Each and Every Year to have $<Input val={target} set={setTarget} placeholder="200000" /> at the End of <Input val={years} set={setYears} placeholder="15" /> years. Assume an Annual Interest rate of <Input val={rate} set={setRate} placeholder="9" />%.
-                </p>
+              <div className="space-y-5">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-slate-700 text-sm">
+                  <strong className="block mb-1 text-slate-900">Example Word Problem:</strong>
+                  Compute the Amount you need to Save Each and Every Year to have $200,000 at the End of 15 years. Assume an Annual Interest rate of 9%.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <LabeledInput label="Target Amount (FV)" val={target} set={setTarget} placeholder="200000" />
+                  <LabeledInput label="Years (n)" val={years} set={setYears} placeholder="15" />
+                  <LabeledInput label="Interest Rate (%)" val={rate} set={setRate} placeholder="9" />
+                </div>
+
                 <FormulaBox formula="PMT = FV / FVIFA(i, n)" tableFactor={`FVIFA(${numRate}%, ${numYears}) = ${factor}`} />
                 <VariablesBox vars={[
                   { label: "PMT", desc: "Payment (The amount you need to save each year)" },
@@ -323,14 +382,17 @@
 
         // --- Reusable UI Elements ---
 
-        const Input = ({ val, set, placeholder }) => (
-          <input
-            type="number"
-            className="w-24 inline-block mx-1 px-2 py-1 text-center font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-indigo-400 placeholder:font-normal"
-            value={val}
-            placeholder={placeholder}
-            onChange={(e) => set(e.target.value)}
-          />
+        const LabeledInput = ({ label, val, set, placeholder }) => (
+          <div className="flex flex-col bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+            <label className="text-sm font-bold text-gray-700 mb-2">{label}</label>
+            <input
+              type="number"
+              className="px-3 py-2 font-medium text-indigo-900 bg-indigo-50 border border-indigo-100 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-indigo-300 placeholder:font-normal w-full transition-colors"
+              value={val}
+              placeholder={placeholder}
+              onChange={(e) => set(e.target.value)}
+            />
+          </div>
         );
 
         const FormulaBox = ({ formula, tableFactor }) => (
