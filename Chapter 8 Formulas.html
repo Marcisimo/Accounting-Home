@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Calculator</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel to compile JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Custom animation that Tailwind might miss without a full config */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInFromBottom { from { transform: translateY(0.5rem); } to { transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.3s ease-out, slideInFromBottom 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- Inline Icons (Replacing lucide-react for standalone HTML) ---
+        const Calculator = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>);
+        const ChevronRight = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>);
+        const FileText = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>);
+        const Info = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>);
+        const Sigma = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 7V4H6l6 8-6 8h12v-3"/></svg>);
+
+        // Helper to format answers strictly to nearest dollar, no commas/symbols
+        const formatAnswer = (num) => {
+          if (isNaN(num) || !isFinite(num)) return '';
+          return Math.round(num).toString();
+        };
+
+        // --- PDF Table Replicators ---
+        const getFVIFA = (ratePct, periods) => {
+          const r = ratePct / 100;
+          const val = (Math.pow(1 + r, periods) - 1) / r;
+          return Number(val.toFixed(3)); // Enforces PDF rule: 3 decimal places
+        };
+
+        const getPVIFA = (ratePct, periods) => {
+          const r = ratePct / 100;
+          const val = (1 - Math.pow(1 + r, -periods)) / r;
+          return Number(val.toFixed(3)); // Enforces PDF rule: 3 decimal places
+        };
+
+        // --- Problem Components ---
+
+        const Problem1 = () => {
+          const [pmt, setPmt] = useState('');
+          const [rate, setRate] = useState('');
+          const [years, setYears] = useState('');
+
+          const numPmt = pmt === '' ? 3000 : Number(pmt);
+          const numRate = rate === '' ? 6 : Number(rate);
+          const numYears = years === '' ? 20 : Number(years);
+
+          const factor = getFVIFA(numRate, numYears);
+          const answer = numPmt * factor;
+
+          return (
+            <ProblemLayout
+              title="1. Future Value of an Annuity (Savings)"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the amount you will have at the End of <Input val={years} set={setYears} placeholder="20" /> years. You can save $<Input val={pmt} set={setPmt} placeholder="3000" /> per year for the next {numYears} years, earning <Input val={rate} set={setRate} placeholder="6" />% Interest Compounded Annually.
+                </p>
+                <FormulaBox formula="FV = PMT × FVIFA(i, n)" tableFactor={`FVIFA(${numRate}%, ${numYears}) = ${factor}`} />
+                <VariablesBox vars={[
+                  { label: "FV", desc: "Future Value (The total amount saved by the end)" },
+                  { label: "PMT", desc: "Payment (The amount saved each year)" },
+                  { label: "i", desc: "Interest Rate per period" },
+                  { label: "n", desc: "Number of periods (years)" },
+                  { label: "FVIFA", desc: "Future Value Interest Factor of an Annuity (pulled from the PDF table)" }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem2 = () => {
+          const [revenue, setRevenue] = useState('');
+          const [taxRate, setTaxRate] = useState('');
+
+          const numRev = revenue === '' ? 300000 : Number(revenue);
+          const numTax = taxRate === '' ? 40 : Number(taxRate);
+
+          const answer = numRev * (numTax / 100);
+
+          return (
+            <ProblemLayout
+              title="2. Simple Tax Cost on Revenues"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the Tax (Cost) or Benefit to a Business with $<Input val={revenue} set={setRevenue} placeholder="300000" /> in Revenues. Use a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="40" />%.
+                </p>
+                <FormulaBox formula="Tax Cost = Revenue × Tax Rate" />
+                <VariablesBox vars={[
+                  { label: "Tax Cost", desc: "The amount of tax owed to the government (Expense)" },
+                  { label: "Revenue", desc: "Total gross income generated by the business" },
+                  { label: "Tax Rate", desc: "The percentage at which the revenue is taxed" }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem3 = () => {
+          const [loan, setLoan] = useState('');
+          const [intRate, setIntRate] = useState('');
+          const [taxRate, setTaxRate] = useState('');
+
+          const numLoan = loan === '' ? 360000 : Number(loan);
+          const numInt = intRate === '' ? 5 : Number(intRate);
+          const numTax = taxRate === '' ? 30 : Number(taxRate);
+
+          const annualInterest = numLoan * (numInt / 100);
+          const afterTaxAnnual = annualInterest * (1 - (numTax / 100));
+          const answer = afterTaxAnnual / 12;
+
+          return (
+            <ProblemLayout
+              title="3. Monthly Mortgage Interest Cost After Tax"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the Monthly Mortgage Interest Cost after the Tax Benefit on an Interest Only Home Loan of $<Input val={loan} set={setLoan} placeholder="360000" />. Use an Interest Rate of <Input val={intRate} set={setIntRate} placeholder="5" />% and a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="30" />%.
+                </p>
+                <FormulaBox formula="Monthly After-Tax Interest = (Loan Amount × Interest Rate × (1 - Tax Rate)) / 12" />
+                <VariablesBox vars={[
+                  { label: "Loan Amount", desc: "The principal amount of the mortgage" },
+                  { label: "Interest Rate", desc: "The annual percentage rate on the loan" },
+                  { label: "Tax Rate", desc: "The business/individual tax rate used to calculate the deduction benefit" },
+                  { label: "(1 - Tax Rate)", desc: "The multiplier to find the net cost after accounting for tax savings" }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem4 = () => {
+          const [expense, setExpense] = useState('');
+          const [taxRate, setTaxRate] = useState('');
+
+          const numExp = expense === '' ? 500000 : Number(expense);
+          const numTax = taxRate === '' ? 30 : Number(taxRate);
+
+          const answer = numExp * (1 - (numTax / 100));
+
+          return (
+            <ProblemLayout
+              title="4. Net Cost of a Tax Deductible Expense"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the Net Cost to a Business with Business Expense Costs of $<Input val={expense} set={setExpense} placeholder="500000" /> that are Tax Deductible. Use a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="30" />%.
+                </p>
+                <FormulaBox formula="Net Cost = Expense × (1 - Tax Rate)" />
+                <VariablesBox vars={[
+                  { label: "Net Cost", desc: "The true out-of-pocket cost after tax savings are applied" },
+                  { label: "Expense", desc: "The gross cost of the business activity" },
+                  { label: "Tax Rate", desc: "The percentage at which the deduction offsets taxes" }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem5 = () => {
+          const [deposit, setDeposit] = useState('');
+          const [rate, setRate] = useState('');
+
+          const numDep = deposit === '' ? 12000 : Number(deposit);
+          const numRate = rate === '' ? 5 : Number(rate);
+
+          const answer = numDep * (numRate / 100);
+
+          return (
+            <ProblemLayout
+              title="5. Annual Interest Earned"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the Annual Interest Earned. We Deposit $<Input val={deposit} set={setDeposit} placeholder="12000" /> in an Interest Bearing Account at a Rate of <Input val={rate} set={setRate} placeholder="5" />% Compounded Annually.
+                </p>
+                <FormulaBox formula="Annual Interest = Deposit × Interest Rate" />
+                <VariablesBox vars={[
+                  { label: "Annual Interest", desc: "The money earned in one single year" },
+                  { label: "Deposit", desc: "The principal amount placed into the account" },
+                  { label: "Interest Rate", desc: "The annual yield rate" }
+                ]} />
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mt-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Because we are only looking for a single year's interest on the initial deposit, compounding does not change the math for Year 1.
+                  </p>
+                </div>
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem6 = () => {
+          const [revenue, setRevenue] = useState('');
+          const [expense, setExpense] = useState('');
+          const [assets, setAssets] = useState('');
+          const [taxRate, setTaxRate] = useState('');
+
+          const numRev = revenue === '' ? 800000 : Number(revenue);
+          const numExp = expense === '' ? 200000 : Number(expense);
+          const numAssets = assets === '' ? 300000 : Number(assets);
+          const numTax = taxRate === '' ? 40 : Number(taxRate);
+
+          const taxableIncome = numRev - numExp;
+          const answer = taxableIncome * (numTax / 100);
+
+          return (
+            <ProblemLayout
+              title="6. Income Tax Expense (Net Income)"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700 leading-relaxed">
+                  Compute the Income Tax Expense Cost to a Business that has Revenues of $<Input val={revenue} set={setRevenue} placeholder="800000" />, 
+                  Expenses of $<Input val={expense} set={setExpense} placeholder="200000" />, 
+                  and Assets of $<Input val={assets} set={setAssets} placeholder="300000" />. 
+                  Use a Tax Rate of <Input val={taxRate} set={setTaxRate} placeholder="40" />%.
+                </p>
+                <FormulaBox formula="Tax Expense = (Revenues - Expenses) × Tax Rate" />
+                <VariablesBox vars={[
+                  { label: "Revenues - Expenses", desc: "Equals your Taxable Income (Net Income)" },
+                  { label: "Tax Rate", desc: "The percentage applied to your Taxable Income" },
+                  { label: "Assets", desc: "Distractor Data! Assets are on the balance sheet, not the income statement. They are ignored for income tax calculations." }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem7 = () => {
+          const [cashFlow, setCashFlow] = useState('');
+          const [years, setYears] = useState('');
+          const [rate, setRate] = useState('');
+
+          const numCash = cashFlow === '' ? 50000 : Number(cashFlow);
+          const numYears = years === '' ? 10 : Number(years);
+          const numRate = rate === '' ? 10 : Number(rate);
+
+          const factor = getPVIFA(numRate, numYears);
+          const answer = numCash * factor;
+
+          return (
+            <ProblemLayout
+              title="7. Present Value of a Capital Project"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the Value Today of a Capital Project that will generate $<Input val={cashFlow} set={setCashFlow} placeholder="50000" /> of Revenue Cash Flows Per Year for the next <Input val={years} set={setYears} placeholder="10" /> Years? Assume a Cost of Capital Rate of <Input val={rate} set={setRate} placeholder="10" />% with Annual Compounding and Ignore Income Taxes.
+                </p>
+                <FormulaBox formula="PV = Cash Flow × PVIFA(i, n)" tableFactor={`PVIFA(${numRate}%, ${numYears}) = ${factor}`} />
+                <VariablesBox vars={[
+                  { label: "PV", desc: "Present Value (The Value Today of future cash flows)" },
+                  { label: "Cash Flow", desc: "The recurring payment/revenue received each year" },
+                  { label: "i", desc: "Cost of Capital Rate (Interest rate/discount rate)" },
+                  { label: "n", desc: "Number of years the project generates cash" },
+                  { label: "PVIFA", desc: "Present Value Interest Factor of an Annuity (pulled from the PDF table)" }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        const Problem8 = () => {
+          const [target, setTarget] = useState('');
+          const [years, setYears] = useState('');
+          const [rate, setRate] = useState('');
+
+          const numTarget = target === '' ? 200000 : Number(target);
+          const numYears = years === '' ? 15 : Number(years);
+          const numRate = rate === '' ? 9 : Number(rate);
+
+          const factor = getFVIFA(numRate, numYears);
+          const answer = numTarget / factor; // Solving for PMT: PMT = FV / FVIFA
+
+          return (
+            <ProblemLayout
+              title="8. Sinking Fund (Savings Needed per Year)"
+              answer={answer}
+            >
+              <div className="space-y-4">
+                <p className="text-gray-700">
+                  Compute the Amount you need to Save Each and Every Year to have $<Input val={target} set={setTarget} placeholder="200000" /> at the End of <Input val={years} set={setYears} placeholder="15" /> years. Assume an Annual Interest rate of <Input val={rate} set={setRate} placeholder="9" />%.
+                </p>
+                <FormulaBox formula="PMT = FV / FVIFA(i, n)" tableFactor={`FVIFA(${numRate}%, ${numYears}) = ${factor}`} />
+                <VariablesBox vars={[
+                  { label: "PMT", desc: "Payment (The amount you need to save each year)" },
+                  { label: "FV", desc: "Future Value (The target amount you want at the end)" },
+                  { label: "i", desc: "Annual Interest Rate" },
+                  { label: "n", desc: "Number of years" },
+                  { label: "FVIFA", desc: "Future Value Interest Factor of an Annuity (pulled from the PDF table)" }
+                ]} />
+              </div>
+            </ProblemLayout>
+          );
+        };
+
+        // --- Reusable UI Elements ---
+
+        const Input = ({ val, set, placeholder }) => (
+          <input
+            type="number"
+            className="w-24 inline-block mx-1 px-2 py-1 text-center font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-indigo-400 placeholder:font-normal"
+            value={val}
+            placeholder={placeholder}
+            onChange={(e) => set(e.target.value)}
+          />
+        );
+
+        const FormulaBox = ({ formula, tableFactor }) => (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
+            <div className="flex items-center text-gray-800 font-semibold mb-2">
+              <Sigma className="w-5 h-5 mr-2 text-indigo-600" />
+              Calculation Formula
+            </div>
+            <code className="block bg-white p-3 rounded border border-gray-100 text-indigo-700 text-lg shadow-sm">
+              {formula}
+            </code>
+            {tableFactor && (
+              <div className="mt-3 text-sm text-green-700 bg-green-50 p-2 rounded border border-green-200 flex items-center">
+                <FileText className="w-4 h-4 mr-2" />
+                PDF Table Extracted Factor: <strong>{tableFactor}</strong>
+              </div>
+            )}
+          </div>
+        );
+
+        const VariablesBox = ({ vars }) => (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mt-4 shadow-sm">
+            <div className="flex items-center text-gray-800 font-semibold mb-3 border-b pb-2">
+              <Info className="w-5 h-5 mr-2 text-indigo-600" />
+              Variable Dictionary
+            </div>
+            <ul className="space-y-2">
+              {vars.map((v, idx) => (
+                <li key={idx} className="text-sm mb-2">
+                  <span className="font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded mr-2 inline-block">{v.label}</span>
+                  <span className="text-gray-600">{v.desc}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+
+        const ProblemLayout = ({ title, children, answer }) => {
+          return (
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">{title}</h2>
+              
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8 text-lg">
+                {children}
+              </div>
+
+              <div className="bg-indigo-600 rounded-xl shadow-lg p-8 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                  <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="2" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#grid)" />
+                  </svg>
+                </div>
+                
+                <h3 className="text-indigo-100 text-sm font-bold uppercase tracking-wider mb-2 relative z-10">
+                  Final Canvas Answer
+                </h3>
+                <p className="text-5xl font-extrabold text-white relative z-10 font-mono tracking-tight">
+                  {formatAnswer(answer)}
+                </p>
+                <p className="text-indigo-200 text-sm mt-3 relative z-10">
+                  Rounded to the nearest dollar. No commas, no symbols.
+                </p>
+              </div>
+            </div>
+          );
+        };
+
+        // --- Main App ---
+
+        function App() {
+          const [activeTab, setActiveTab] = useState(1);
+
+          const problems = [
+            { id: 1, name: "Future Value Savings" },
+            { id: 2, name: "Tax Cost on Revenues" },
+            { id: 3, name: "Mortgage Tax Benefit" },
+            { id: 4, name: "Net Cost of Expense" },
+            { id: 5, name: "Annual Interest Earned" },
+            { id: 6, name: "Income Tax Expense" },
+            { id: 7, name: "PV of Capital Project" },
+            { id: 8, name: "Sinking Fund (PMT)" },
+          ];
+
+          const renderActiveProblem = () => {
+            switch (activeTab) {
+              case 1: return <Problem1 />;
+              case 2: return <Problem2 />;
+              case 3: return <Problem3 />;
+              case 4: return <Problem4 />;
+              case 5: return <Problem5 />;
+              case 6: return <Problem6 />;
+              case 7: return <Problem7 />;
+              case 8: return <Problem8 />;
+              default: return <Problem1 />;
+            }
+          };
+
+          return (
+            <div className="min-h-screen bg-gray-100 text-gray-900 font-sans flex flex-col md:flex-row">
+              
+              <div className="w-full md:w-80 bg-slate-900 text-slate-300 flex flex-col shrink-0 md:min-h-screen">
+                <div className="p-6 border-b border-slate-800">
+                  <div className="flex items-center text-white mb-2">
+                    <Calculator className="w-6 h-6 mr-3 text-indigo-400" />
+                    <h1 className="text-xl font-bold">Accounting Tool</h1>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Select a problem type below. The formulas automatically replicate the 3-decimal rounding limit found in your provided PDF table.
+                  </p>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 space-y-1">
+                  {problems.map((prob) => (
+                    <button
+                      key={prob.id}
+                      onClick={() => setActiveTab(prob.id)}
+                      className={`w-full text-left px-4 py-3 rounded-lg flex items-center justify-between transition-colors duration-200 ${
+                        activeTab === prob.id 
+                          ? 'bg-indigo-600 text-white shadow-md' 
+                          : 'hover:bg-slate-800 hover:text-white'
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        <span className="opacity-50 mr-2">{prob.id}.</span> 
+                        {prob.name}
+                      </span>
+                      {activeTab === prob.id && <ChevronRight className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex-1 max-w-4xl mx-auto p-6 md:p-10 overflow-y-auto">
+                {renderActiveProblem()}
+              </div>
+
+            </div>
+          );
+        }
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
