@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Formula Calculator</title>
+    <!-- Include Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-slate-900">
+
+    <div class="max-w-[1400px] mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-8 flex items-center gap-3">
+            <div class="p-3 bg-indigo-600 text-white rounded-xl shadow-sm">
+                <!-- Calculator Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Managerial Accounting Calculator</h1>
+                <p class="text-slate-500">Automated formulas for manufacturing and cost accounting</p>
+            </div>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+          
+            <!-- Left Column: Sidebar Navigation -->
+            <div class="w-full lg:w-72 shrink-0 flex flex-col gap-2 sticky top-8">
+                <button id="nav-TMC" onclick="showTab('TMC')" class="nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-indigo-600 text-white border-indigo-600 shadow-md">
+                    Total Mfg Cost (TMC)
+                    <span id="icon-TMC" class="text-indigo-200"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                </button>
+                <button id="nav-COGM" onclick="showTab('COGM')" class="nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50">
+                    Cost of Goods Mfg (COGM)
+                    <span id="icon-COGM" class="text-slate-400"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                </button>
+                <button id="nav-COGS" onclick="showTab('COGS')" class="nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50">
+                    Cost of Goods Sold (COGS)
+                    <span id="icon-COGS" class="text-slate-400"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                </button>
+                <button id="nav-MOH" onclick="showTab('MOH')" class="nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50">
+                    MOH Rate
+                    <span id="icon-MOH" class="text-slate-400"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                </button>
+                <button id="nav-CPEU" onclick="showTab('CPEU')" class="nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50">
+                    Cost Per Equiv Unit (CPEU)
+                    <span id="icon-CPEU" class="text-slate-400"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                </button>
+                <button id="nav-TEU" onclick="showTab('TEU')" class="nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50">
+                    Total Equiv Units (TEU)
+                    <span id="icon-TEU" class="text-slate-400"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+                </button>
+            </div>
+
+            <!-- Middle Column: Main Calculator Area -->
+            <div class="flex-1 w-full min-w-0 relative">
+                
+                <!-- TMC Panel -->
+                <div id="panel-TMC" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 block">
+                    <h2 class="text-xl font-bold mb-1 flex items-center gap-2">Total Manufacturing Cost (TMC)</h2>
+                    <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">TMC = DM + DL + MOH</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Direct Materials (DM)</label>
+                            <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="tmc-dm" oninput="calculateTMC()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                        </div>
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Direct Labor (DL)</label>
+                            <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="tmc-dl" oninput="calculateTMC()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                        </div>
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Mfg Overhead (MOH)</label>
+                            <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="tmc-moh" oninput="calculateTMC()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-6 rounded-xl">
+                        <span class="text-lg font-semibold text-slate-600">Calculated TMC:</span>
+                        <span id="tmc-result" class="text-3xl font-bold text-indigo-700">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- COGM Panel -->
+                <div id="panel-COGM" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                        <div><h2 class="text-xl font-bold mb-1">Cost of Goods Manufactured (COGM)</h2></div>
+                        <div class="flex bg-slate-100 p-1 rounded-lg mt-2 sm:mt-0">
+                            <button id="cogm-btn-standard" onclick="setCogmMethod('standard')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white shadow-sm text-indigo-700">Standard</button>
+                            <button id="cogm-btn-equiv" onclick="setCogmMethod('equiv')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900">Equiv. Units</button>
+                        </div>
+                    </div>
+
+                    <div id="cogm-standard-section">
+                        <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">COGM = Beg WIP + TMC - End WIP</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Beginning WIP</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogm1-beg" oninput="calculateCOGM()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Total Mfg Cost (TMC)</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogm1-tmc" oninput="calculateCOGM()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Ending WIP</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogm1-end" oninput="calculateCOGM()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cogm-equiv-section" class="hidden">
+                        <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">COGM = CPEU × Units Complete</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Cost Per Equiv Unit (CPEU)</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogm2-cpeu" oninput="calculateCOGM()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Units Complete</label>
+                                <div class="relative"><input type="number" id="cogm2-units" oninput="calculateCOGM()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-3" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-6 rounded-xl">
+                        <span class="text-lg font-semibold text-slate-600">Calculated COGM:</span>
+                        <span id="cogm-result" class="text-3xl font-bold text-indigo-700">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- COGS Panel -->
+                <div id="panel-COGS" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                        <div><h2 class="text-xl font-bold mb-1">Cost of Goods Sold (COGS)</h2></div>
+                        <div class="flex bg-slate-100 p-1 rounded-lg mt-2 sm:mt-0">
+                            <button id="cogs-btn-standard" onclick="setCogsMethod('standard')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white shadow-sm text-indigo-700">Standard</button>
+                            <button id="cogs-btn-equiv" onclick="setCogsMethod('equiv')" class="px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900">Equiv. Units</button>
+                        </div>
+                    </div>
+
+                    <div id="cogs-standard-section">
+                        <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">COGS = Beg FG + COGM - End FG</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Beginning FG</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogs1-beg" oninput="calculateCOGS()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">COGM</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogs1-cogm" oninput="calculateCOGS()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Ending FG</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogs1-end" oninput="calculateCOGS()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cogs-equiv-section" class="hidden">
+                        <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">COGS = CPEU × Units Sold</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Cost Per Equiv Unit (CPEU)</label>
+                                <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cogs2-cpeu" oninput="calculateCOGS()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                            </div>
+                            <div class="flex flex-col mb-3">
+                                <label class="text-sm font-medium text-slate-700 mb-1">Units Sold</label>
+                                <div class="relative"><input type="number" id="cogs2-units" oninput="calculateCOGS()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-3" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-6 rounded-xl">
+                        <span class="text-lg font-semibold text-slate-600">Calculated COGS:</span>
+                        <span id="cogs-result" class="text-3xl font-bold text-indigo-700">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- MOH Rate Panel -->
+                <div id="panel-MOH" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 hidden">
+                    <h2 class="text-xl font-bold mb-1">MOH Rate</h2>
+                    <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">Rate = Est MOH / Est Driver Amount</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Est MOH Costs</label>
+                            <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="moh-est" oninput="calculateMOH()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                        </div>
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Est Driver Amount</label>
+                            <div class="relative"><input type="number" id="moh-driver" oninput="calculateMOH()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-3" /></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-6 rounded-xl">
+                        <span class="text-lg font-semibold text-slate-600">MOH Rate:</span>
+                        <div>
+                            <span id="moh-result" class="text-3xl font-bold text-indigo-700">$0.00</span> 
+                            <span class="text-lg font-normal text-slate-500">/ driver unit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CPEU Panel -->
+                <div id="panel-CPEU" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 hidden">
+                    <h2 class="text-xl font-bold mb-1">Cost Per Equivalent Unit</h2>
+                    <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">CPEU = Total Costs / TEU</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Total Costs</label>
+                            <div class="relative"><span class="absolute left-3 top-2 text-slate-500">$</span><input type="number" id="cpeu-total" oninput="calculateCPEU()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                        </div>
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Total Equivalent Units (TEU)</label>
+                            <div class="relative"><input type="number" id="cpeu-teu" oninput="calculateCPEU()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-3" /></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-6 rounded-xl">
+                        <span class="text-lg font-semibold text-slate-600">CPEU:</span>
+                        <div>
+                            <span id="cpeu-result" class="text-3xl font-bold text-indigo-700">$0.00</span>
+                            <span class="text-lg font-normal text-slate-500">/ unit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TEU Panel -->
+                <div id="panel-TEU" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 hidden">
+                    <h2 class="text-xl font-bold mb-1">Total Equivalent Units (TEU)</h2>
+                    <p class="text-sm text-indigo-600 font-mono bg-indigo-50 px-3 py-1.5 rounded-lg inline-block mb-6">TEU = Units Completed + (End WIP Units × % Complete)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Units Completed</label>
+                            <div class="relative"><input type="number" id="teu-units" oninput="calculateTEU()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-3" /></div>
+                        </div>
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">Ending WIP Units</label>
+                            <div class="relative"><input type="number" id="teu-endwip" oninput="calculateTEU()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-3" /></div>
+                        </div>
+                        <div class="flex flex-col mb-3">
+                            <label class="text-sm font-medium text-slate-700 mb-1">% Complete (0-100)</label>
+                            <div class="relative"><span class="absolute left-3 top-2 text-slate-500">%</span><input type="number" id="teu-percent" placeholder="e.g. 50" oninput="calculateTEU()" class="w-full border border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pl-7 pr-3" /></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center bg-slate-50 p-6 rounded-xl">
+                        <span class="text-lg font-semibold text-slate-600">Calculated TEU:</span>
+                        <div>
+                            <span id="teu-result" class="text-3xl font-bold text-indigo-700">0</span>
+                            <span class="text-xl font-normal text-slate-500">units</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Glossary Sidebar -->
+            <div class="w-full lg:w-80 shrink-0">
+                <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-lg sticky top-8">
+                    <div class="flex items-center gap-2 mb-6">
+                        <!-- BookOpen Icon -->
+                        <svg class="text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <h2 class="text-xl font-bold">Glossary & Terms</h2>
+                    </div>
+                  
+                    <div class="space-y-4">
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                TMC
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5">Total Manufacturing Cost. The sum of Direct Materials, Direct Labor, and Overhead used.</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                DM / DL / MOH
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5"><b>D</b>irect <b>M</b>aterials, <b>D</b>irect <b>L</b>abor, and <b>M</b>anufacturing <b>O</b>ver<b>H</b>ead.</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                COGM
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5">Cost of Goods Manufactured. The total cost of products that finished production during the period.</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                COGS
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5">Cost of Goods Sold. The accumulated total of all costs used to create a product or service, which has been sold.</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                WIP / FG
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5"><b>W</b>ork <b>I</b>n <b>P</b>rocess (partially completed goods) and <b>F</b>inished <b>G</b>oods (fully completed goods).</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                TEU
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5">Total Equivalent Units. A measure of production used in process costing to account for partially finished units.</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                CPEU
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5">Cost Per Equivalent Unit. Total costs incurred divided by total equivalent units.</dd>
+                        </div>
+                        <div class="group">
+                            <dt class="font-bold text-indigo-300 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                Est Driver Amount
+                            </dt>
+                            <dd class="text-slate-300 text-sm ml-5">The estimated base used to allocate overhead (e.g., machine hours, direct labor hours).</dd>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-700">
+                        <div class="flex items-start gap-3 bg-slate-700/50 p-4 rounded-lg">
+                            <svg class="text-indigo-400 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Leave fields blank if they are not provided in your problem. The calculator handles blank fields as $0 for continuous calculation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Formatter Utilities
+        const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+        const formatNumber = (val) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(val);
+        const parseNum = (val) => parseFloat(val) || 0;
+
+        // --- Navigation Logic ---
+        const tabs = ['TMC', 'COGM', 'COGS', 'MOH', 'CPEU', 'TEU'];
+        
+        function showTab(activeTab) {
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`nav-${tab}`);
+                const icon = document.getElementById(`icon-${tab}`);
+                const panel = document.getElementById(`panel-${tab}`);
+
+                if (tab === activeTab) {
+                    btn.className = 'nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-indigo-600 text-white border-indigo-600 shadow-md';
+                    icon.className = 'text-indigo-200';
+                    panel.classList.remove('hidden');
+                    panel.classList.add('block');
+                } else {
+                    btn.className = 'nav-btn flex items-center justify-between w-full px-5 py-4 rounded-xl text-left transition-all font-medium border bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50';
+                    icon.className = 'text-slate-400';
+                    panel.classList.remove('block');
+                    panel.classList.add('hidden');
+                }
+            });
+        }
+
+        // --- Toggle Method Logic (COGM & COGS) ---
+        let currentCogmMethod = 'standard';
+        let currentCogsMethod = 'standard';
+
+        function setCogmMethod(method) {
+            currentCogmMethod = method;
+            
+            const btnStandard = document.getElementById('cogm-btn-standard');
+            const btnEquiv = document.getElementById('cogm-btn-equiv');
+            const secStandard = document.getElementById('cogm-standard-section');
+            const secEquiv = document.getElementById('cogm-equiv-section');
+
+            if (method === 'standard') {
+                btnStandard.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white shadow-sm text-indigo-700';
+                btnEquiv.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900';
+                secStandard.classList.remove('hidden');
+                secEquiv.classList.add('hidden');
+            } else {
+                btnStandard.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900';
+                btnEquiv.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white shadow-sm text-indigo-700';
+                secStandard.classList.add('hidden');
+                secEquiv.classList.remove('hidden');
+            }
+            calculateCOGM();
+        }
+
+        function setCogsMethod(method) {
+            currentCogsMethod = method;
+            
+            const btnStandard = document.getElementById('cogs-btn-standard');
+            const btnEquiv = document.getElementById('cogs-btn-equiv');
+            const secStandard = document.getElementById('cogs-standard-section');
+            const secEquiv = document.getElementById('cogs-equiv-section');
+
+            if (method === 'standard') {
+                btnStandard.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white shadow-sm text-indigo-700';
+                btnEquiv.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900';
+                secStandard.classList.remove('hidden');
+                secEquiv.classList.add('hidden');
+            } else {
+                btnStandard.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-900';
+                btnEquiv.className = 'px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white shadow-sm text-indigo-700';
+                secStandard.classList.add('hidden');
+                secEquiv.classList.remove('hidden');
+            }
+            calculateCOGS();
+        }
+
+        // --- Calculation Logic ---
+        function calculateTMC() {
+            const val = parseNum(document.getElementById('tmc-dm').value) + 
+                        parseNum(document.getElementById('tmc-dl').value) + 
+                        parseNum(document.getElementById('tmc-moh').value);
+            document.getElementById('tmc-result').innerText = formatCurrency(val);
+        }
+
+        function calculateCOGM() {
+            let val = 0;
+            if(currentCogmMethod === 'standard') {
+                val = parseNum(document.getElementById('cogm1-beg').value) + 
+                      parseNum(document.getElementById('cogm1-tmc').value) - 
+                      parseNum(document.getElementById('cogm1-end').value);
+            } else {
+                val = parseNum(document.getElementById('cogm2-cpeu').value) * parseNum(document.getElementById('cogm2-units').value);
+            }
+            document.getElementById('cogm-result').innerText = formatCurrency(val);
+        }
+
+        function calculateCOGS() {
+            let val = 0;
+            if(currentCogsMethod === 'standard') {
+                val = parseNum(document.getElementById('cogs1-beg').value) + 
+                      parseNum(document.getElementById('cogs1-cogm').value) - 
+                      parseNum(document.getElementById('cogs1-end').value);
+            } else {
+                val = parseNum(document.getElementById('cogs2-cpeu').value) * parseNum(document.getElementById('cogs2-units').value);
+            }
+            document.getElementById('cogs-result').innerText = formatCurrency(val);
+        }
+
+        function calculateMOH() {
+            const estMoh = parseNum(document.getElementById('moh-est').value);
+            const estDriver = parseNum(document.getElementById('moh-driver').value);
+            const val = estDriver === 0 ? 0 : estMoh / estDriver;
+            document.getElementById('moh-result').innerText = formatCurrency(val);
+        }
+
+        function calculateCPEU() {
+            const totalCosts = parseNum(document.getElementById('cpeu-total').value);
+            const teu = parseNum(document.getElementById('cpeu-teu').value);
+            const val = teu === 0 ? 0 : totalCosts / teu;
+            document.getElementById('cpeu-result').innerText = formatCurrency(val);
+        }
+
+        function calculateTEU() {
+            const unitsComp = parseNum(document.getElementById('teu-units').value);
+            const endWip = parseNum(document.getElementById('teu-endwip').value);
+            const percent = parseNum(document.getElementById('teu-percent').value);
+            const val = unitsComp + (endWip * (percent / 100));
+            document.getElementById('teu-result').innerText = formatNumber(val);
+        }
+
+        // Initialize calculations on load so formatting applies to default 0s
+        window.onload = () => {
+            calculateTMC();
+            calculateCOGM();
+            calculateCOGS();
+            calculateMOH();
+            calculateCPEU();
+            calculateTEU();
+        };
+    </script>
+</body>
+</html>

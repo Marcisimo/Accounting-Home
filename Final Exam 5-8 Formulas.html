@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting CVP Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Replicating the React animation */
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in {
+            animation: fadeInSlideUp 0.3s ease-out forwards;
+        }
+        /* Hide scrollbar for cleaner look in the sidebar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen bg-blue-50/40 font-sans text-slate-800">
+
+    <!-- Sidebar -->
+    <div class="w-full md:w-80 bg-white border-r border-blue-100 shadow-lg flex flex-col z-10 md:h-screen md:sticky top-0">
+        <header class="p-6 bg-gradient-to-br from-blue-700 to-blue-900 shadow-md border-b border-blue-800">
+            <h1 class="text-2xl font-bold text-white mb-2 tracking-tight">Managerial Accounting</h1>
+            <p class="text-sm text-blue-200 font-medium">CVP Analysis Tools</p>
+        </header>
+        
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <button id="nav-beUnits" onclick="switchTab('beUnits')" class="nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 bg-blue-50 text-blue-800 border-l-4 border-blue-600 font-bold shadow-sm">
+                        1. Break-Even Point (Units)
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-beSales" onclick="switchTab('beSales')" class="nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 text-slate-600 hover:bg-blue-50/50 hover:text-blue-700 border-l-4 border-transparent font-medium">
+                        2. Break-Even Point (Sales $$)
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-tpUnits" onclick="switchTab('tpUnits')" class="nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 text-slate-600 hover:bg-blue-50/50 hover:text-blue-700 border-l-4 border-transparent font-medium">
+                        3. Target Profit Point in Units
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-cmPct" onclick="switchTab('cmPct')" class="nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 text-slate-600 hover:bg-blue-50/50 hover:text-blue-700 border-l-4 border-transparent font-medium">
+                        4. Contribution Margin Ratio
+                    </button>
+                </li>
+                <li>
+                    <button id="nav-opLev" onclick="switchTab('opLev')" class="nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 text-slate-600 hover:bg-blue-50/50 hover:text-blue-700 border-l-4 border-transparent font-medium">
+                        5. Operating Leverage
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto">
+        <div class="max-w-3xl mx-auto h-full flex flex-col justify-center">
+
+            <!-- 1. BE PT Units -->
+            <div id="tab-beUnits" class="tab-content bg-white rounded-2xl shadow-md border border-blue-100 p-6 md:p-8 flex flex-col animate-fade-in">
+                <h2 class="text-2xl font-bold text-blue-800 mb-6 border-b border-blue-100 pb-3">1. Break-Even Point (Units)</h2>
+                
+                <div class="bg-blue-50/80 p-6 rounded-xl mb-8 flex items-center justify-center text-xl font-semibold text-blue-900 border border-blue-100 shadow-sm">
+                    <span class="mr-4">BE PT Units =</span>
+                    <div class="flex flex-col items-center">
+                        <span class="border-b-2 border-blue-900 px-6 pb-2">Fixed Costs</span>
+                        <span class="pt-2">CM per Unit</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Fixed Costs ($)</label>
+                        <input type="number" id="beUnitsFC" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 50000" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">CM per Unit ($)</label>
+                        <input type="number" id="beUnitsCMPU" class="w-full p-3 border rounded focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 20" />
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 flex justify-between items-center mb-8 shadow-sm">
+                    <span class="font-semibold text-blue-900 text-lg">Result (Units):</span>
+                    <span id="res-beUnits" class="text-3xl font-bold text-blue-700">--</span>
+                </div>
+
+                <div class="mt-auto bg-blue-50/50 p-5 rounded-xl text-sm text-blue-900 border border-blue-100 shadow-sm">
+                    <h3 class="font-bold text-blue-800 mb-3 text-base">Variables:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>BE PT Units:</strong> The exact number of units you need to sell to make $0 profit (covering all costs).</li>
+                        <li><strong>Fixed Costs:</strong> Expenses that do not change regardless of how many units you sell (e.g., rent, salaries).</li>
+                        <li><strong>CM per Unit:</strong> Contribution Margin per unit. Calculated as (Sales Price per unit - Variable Cost per unit).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 2. BE PT Sales $$ -->
+            <div id="tab-beSales" class="tab-content hidden bg-white rounded-2xl shadow-md border border-emerald-100 p-6 md:p-8 flex flex-col animate-fade-in">
+                <h2 class="text-2xl font-bold text-emerald-800 mb-6 border-b border-emerald-100 pb-3">2. Break-Even Point (Sales $$)</h2>
+                
+                <div class="bg-emerald-50/80 p-6 rounded-xl mb-8 flex items-center justify-center text-xl font-semibold text-emerald-900 border border-emerald-100 shadow-sm">
+                    <span class="mr-4">BE PT Sales $$ =</span>
+                    <div class="flex flex-col items-center">
+                        <span class="border-b-2 border-emerald-900 px-6 pb-2">Fixed Costs</span>
+                        <span class="pt-2">CM %</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Fixed Costs ($)</label>
+                        <input type="number" id="beSalesFC" class="w-full p-3 border rounded focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g. 50000" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">CM % (Enter as e.g., 40 for 40%)</label>
+                        <input type="number" id="beSalesCMPct" class="w-full p-3 border rounded focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g. 40" />
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-200 flex justify-between items-center mb-8 shadow-sm">
+                    <span class="font-semibold text-emerald-900 text-lg">Result (Sales Revenue):</span>
+                    <span id="res-beSales" class="text-3xl font-bold text-emerald-700">--</span>
+                </div>
+
+                <div class="mt-auto bg-emerald-50/50 p-5 rounded-xl text-sm text-emerald-900 border border-emerald-100 shadow-sm">
+                    <h3 class="font-bold text-emerald-800 mb-3 text-base">Variables:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>BE PT Sales $$:</strong> The total dollar amount of revenue needed to break even.</li>
+                        <li><strong>Fixed Costs:</strong> Total unchanging expenses for the period.</li>
+                        <li><strong>CM %:</strong> Contribution Margin Ratio. The percentage of each sales dollar available to cover fixed costs.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 3. Target Profit Point in Units -->
+            <div id="tab-tpUnits" class="tab-content hidden bg-white rounded-2xl shadow-md border border-purple-100 p-6 md:p-8 flex flex-col animate-fade-in">
+                <h2 class="text-2xl font-bold text-purple-800 mb-6 border-b border-purple-100 pb-3">3. Target Profit Point in Units</h2>
+                
+                <div class="bg-purple-50/80 p-6 rounded-xl mb-8 flex items-center justify-center text-xl font-semibold text-purple-900 border border-purple-100 shadow-sm">
+                    <span class="mr-4 text-center">Target Profit <br/> Point in Units =</span>
+                    <div class="flex flex-col items-center">
+                        <span class="border-b-2 border-purple-900 px-6 pb-2">Fixed Costs + TP</span>
+                        <span class="pt-2">CM per Unit</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Fixed Costs ($)</label>
+                        <input type="number" id="tpUnitsFC" class="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none" placeholder="e.g. 50000" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Target Profit ($)</label>
+                        <input type="number" id="tpUnitsTP" class="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none" placeholder="e.g. 20000" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">CM per Unit ($)</label>
+                        <input type="number" id="tpUnitsCMPU" class="w-full p-3 border rounded focus:ring-2 focus:ring-purple-500 outline-none" placeholder="e.g. 20" />
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 p-6 rounded-xl border border-purple-200 flex justify-between items-center mb-8 shadow-sm">
+                    <span class="font-semibold text-purple-900 text-lg">Result (Units):</span>
+                    <span id="res-tpUnits" class="text-3xl font-bold text-purple-700">--</span>
+                </div>
+
+                <div class="mt-auto bg-purple-50/50 p-5 rounded-xl text-sm text-purple-900 border border-purple-100 shadow-sm">
+                    <h3 class="font-bold text-purple-800 mb-3 text-base">Variables:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Target Profit (TP):</strong> The specific amount of net income the company wishes to earn.</li>
+                        <li><strong>Target Profit Point:</strong> How many units must be sold to cover costs AND achieve the target profit.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 4. CM % -->
+            <div id="tab-cmPct" class="tab-content hidden bg-white rounded-2xl shadow-md border border-amber-100 p-6 md:p-8 flex flex-col animate-fade-in">
+                <h2 class="text-2xl font-bold text-amber-800 mb-6 border-b border-amber-100 pb-3">4. Contribution Margin Ratio (CM %)</h2>
+                
+                <div class="bg-amber-50/80 p-6 rounded-xl mb-8 flex items-center justify-center text-xl font-semibold text-amber-900 border border-amber-100 shadow-sm">
+                    <span class="mr-4">CM % =</span>
+                    <div class="flex flex-col items-center">
+                        <span class="border-b-2 border-amber-900 px-6 pb-2">CM</span>
+                        <span class="pt-2">Sales</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Total CM ($)</label>
+                        <input type="number" id="cmPctCM" class="w-full p-3 border rounded focus:ring-2 focus:ring-amber-500 outline-none" placeholder="e.g. 40000" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Total Sales ($)</label>
+                        <input type="number" id="cmPctSales" class="w-full p-3 border rounded focus:ring-2 focus:ring-amber-500 outline-none" placeholder="e.g. 100000" />
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 p-6 rounded-xl border border-amber-200 flex justify-between items-center mb-8 shadow-sm">
+                    <span class="font-semibold text-amber-900 text-lg">Result (Percentage):</span>
+                    <span id="res-cmPct" class="text-3xl font-bold text-amber-700">--</span>
+                </div>
+
+                <div class="mt-auto bg-amber-50/50 p-5 rounded-xl text-sm text-amber-900 border border-amber-100 shadow-sm">
+                    <h3 class="font-bold text-amber-800 mb-3 text-base">Variables:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>CM:</strong> Total Contribution Margin (Total Sales minus Total Variable Costs).</li>
+                        <li><strong>Sales:</strong> Total Sales Revenue.</li>
+                        <li><strong>CM %:</strong> Translates the contribution margin into a percentage format, showing how much of every sales dollar is left after variable costs.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 5. Operating Leverage -->
+            <div id="tab-opLev" class="tab-content hidden bg-white rounded-2xl shadow-md border border-rose-100 p-6 md:p-8 flex flex-col animate-fade-in">
+                <h2 class="text-2xl font-bold text-rose-800 mb-6 border-b border-rose-100 pb-3">5. Degree of Operating Leverage</h2>
+                
+                <div class="bg-rose-50/80 p-6 rounded-xl mb-8 flex items-center justify-center text-xl font-semibold text-rose-900 border border-rose-100 shadow-sm">
+                    <span class="mr-4 text-center">Operating <br/> Leverage =</span>
+                    <div class="flex flex-col items-center">
+                        <span class="border-b-2 border-rose-900 px-6 pb-2">Contribution Margin</span>
+                        <span class="pt-2">Net Income</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Total CM ($)</label>
+                        <input type="number" id="olCM" class="w-full p-3 border rounded focus:ring-2 focus:ring-rose-500 outline-none" placeholder="e.g. 40000" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Net Income ($)</label>
+                        <input type="number" id="olNI" class="w-full p-3 border rounded focus:ring-2 focus:ring-rose-500 outline-none" placeholder="e.g. 10000" />
+                    </div>
+                </div>
+
+                <div class="bg-rose-50 p-6 rounded-xl border border-rose-200 flex justify-between items-center mb-8 shadow-sm">
+                    <span class="font-semibold text-rose-900 text-lg">Result (Multiplier):</span>
+                    <span id="res-opLev" class="text-3xl font-bold text-rose-700">--</span>
+                </div>
+
+                <div class="mt-auto bg-rose-50/50 p-5 rounded-xl text-sm text-rose-900 border border-rose-100 shadow-sm">
+                    <h3 class="font-bold text-rose-800 mb-3 text-base">Variables:</h3>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Contribution Margin:</strong> Total Sales minus Total Variable Expenses.</li>
+                        <li><strong>Net Income:</strong> The total profit of the company after all expenses (Variable and Fixed) are deducted from sales.</li>
+                        <li><strong>Operating Leverage:</strong> A multiplier. If operating leverage is 4, a 10% increase in sales will result in a 40% (10% x 4) increase in net income.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Tab switching logic
+        function switchTab(tabId) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.add('hidden'));
+
+            // Show active tab
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            // Reset all nav buttons styling
+            const inactiveClasses = "nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 text-slate-600 hover:bg-blue-50/50 hover:text-blue-700 border-l-4 border-transparent font-medium".split(" ");
+            const activeClasses = "nav-btn w-full text-left px-6 py-4 text-sm transition-all duration-200 bg-blue-50 text-blue-800 border-l-4 border-blue-600 font-bold shadow-sm".split(" ");
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = inactiveClasses.join(" ");
+            });
+
+            // Set active nav button styling
+            document.getElementById('nav-' + tabId).className = activeClasses.join(" ");
+        }
+
+        // Calculation helper
+        const calculateResult = (value, isCurrency = false, isPercentage = false) => {
+            if (isNaN(value) || !isFinite(value)) return '--';
+            if (isCurrency) return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+            if (isPercentage) return `${(value * 100).toFixed(2)}%`;
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
+        };
+
+        // 1. BE PT Units
+        const calcBeUnits = () => {
+            const fc = parseFloat(document.getElementById('beUnitsFC').value);
+            const cmpu = parseFloat(document.getElementById('beUnitsCMPU').value);
+            document.getElementById('res-beUnits').textContent = calculateResult(fc / cmpu);
+        };
+        document.getElementById('beUnitsFC').addEventListener('input', calcBeUnits);
+        document.getElementById('beUnitsCMPU').addEventListener('input', calcBeUnits);
+
+        // 2. BE PT Sales $$
+        const calcBeSales = () => {
+            const fc = parseFloat(document.getElementById('beSalesFC').value);
+            const cmPct = parseFloat(document.getElementById('beSalesCMPct').value);
+            document.getElementById('res-beSales').textContent = calculateResult(fc / (cmPct / 100), true);
+        };
+        document.getElementById('beSalesFC').addEventListener('input', calcBeSales);
+        document.getElementById('beSalesCMPct').addEventListener('input', calcBeSales);
+
+        // 3. Target Profit Units
+        const calcTpUnits = () => {
+            const fc = parseFloat(document.getElementById('tpUnitsFC').value);
+            const tp = parseFloat(document.getElementById('tpUnitsTP').value);
+            const cmpu = parseFloat(document.getElementById('tpUnitsCMPU').value);
+            document.getElementById('res-tpUnits').textContent = calculateResult((fc + tp) / cmpu);
+        };
+        document.getElementById('tpUnitsFC').addEventListener('input', calcTpUnits);
+        document.getElementById('tpUnitsTP').addEventListener('input', calcTpUnits);
+        document.getElementById('tpUnitsCMPU').addEventListener('input', calcTpUnits);
+
+        // 4. CM %
+        const calcCmPct = () => {
+            const cm = parseFloat(document.getElementById('cmPctCM').value);
+            const sales = parseFloat(document.getElementById('cmPctSales').value);
+            document.getElementById('res-cmPct').textContent = calculateResult(cm / sales, false, true);
+        };
+        document.getElementById('cmPctCM').addEventListener('input', calcCmPct);
+        document.getElementById('cmPctSales').addEventListener('input', calcCmPct);
+
+        // 5. Operating Leverage
+        const calcOpLev = () => {
+            const cm = parseFloat(document.getElementById('olCM').value);
+            const ni = parseFloat(document.getElementById('olNI').value);
+            document.getElementById('res-opLev').textContent = calculateResult(cm / ni);
+        };
+        document.getElementById('olCM').addEventListener('input', calcOpLev);
+        document.getElementById('olNI').addEventListener('input', calcOpLev);
+    </script>
+</body>
+</html>

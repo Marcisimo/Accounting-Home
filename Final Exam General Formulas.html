@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Toolkit</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Load Babel for JSX compiling in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- Icon Components (Replacing Lucide Imports) ---
+        const IconBase = ({ children, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const Calculator = ({ className }) => <IconBase className={className}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><line x1="8" y1="10" x2="8" y2="10.01"></line><line x1="12" y1="10" x2="12" y2="10.01"></line><line x1="16" y1="10" x2="16" y2="10.01"></line><line x1="8" y1="14" x2="8" y2="14.01"></line><line x1="12" y1="14" x2="12" y2="14.01"></line><line x1="8" y1="18" x2="8" y2="18.01"></line><line x1="12" y1="18" x2="12" y2="18.01"></line></IconBase>;
+        const Target = ({ className }) => <IconBase className={className}><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></IconBase>;
+        const Settings = ({ className }) => <IconBase className={className}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></IconBase>;
+        const Layers = ({ className }) => <IconBase className={className}><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 12 12 17 22 12"></polyline><polyline points="2 17 12 22 22 17"></polyline></IconBase>;
+        const DollarSign = ({ className }) => <IconBase className={className}><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></IconBase>;
+        const Info = ({ className }) => <IconBase className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></IconBase>;
+        const ArrowRight = ({ className }) => <IconBase className={className}><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></IconBase>;
+        const BookOpen = ({ className }) => <IconBase className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></IconBase>;
+
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState(0);
+
+            const tabs = [
+                { id: 0, title: 'Tax Benefit / Cost', icon: <DollarSign className="w-5 h-5" /> },
+                { id: 1, title: 'Breakeven Point', icon: <Target className="w-5 h-5" /> },
+                { id: 2, title: 'Predetermined MOH', icon: <Settings className="w-5 h-5" /> },
+                { id: 3, title: 'Equivalent Units', icon: <Layers className="w-5 h-5" /> },
+                { id: 4, title: 'Cost Per EU', icon: <Calculator className="w-5 h-5" /> }
+            ];
+
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-800">
+                    {/* Sidebar Navigation */}
+                    <aside className="w-full md:w-64 bg-slate-900 text-slate-100 flex-shrink-0 flex flex-col shadow-xl z-10">
+                        <div className="p-6">
+                            <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                                <Calculator className="text-blue-400 w-6 h-6" />
+                                Acct<span className="text-blue-400">Master</span>
+                            </h1>
+                            <p className="text-xs text-slate-400 mt-2">Managerial Accounting Toolkit</p>
+                        </div>
+                        <nav className="flex-1 px-4 space-y-2 overflow-y-auto pb-6">
+                            {tabs.map((tab, idx) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(idx)}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
+                                        activeTab === idx 
+                                            ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' 
+                                            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                    }`}
+                                >
+                                    {tab.icon}
+                                    {tab.title}
+                                </button>
+                            ))}
+                        </nav>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+                        <div className="max-w-5xl mx-auto">
+                            {activeTab === 0 && <TaxBenefitCalc />}
+                            {activeTab === 1 && <BreakevenCalc />}
+                            {activeTab === 2 && <PredeterminedMOHCalc />}
+                            {activeTab === 3 && <EquivalentUnitsCalc />}
+                            {activeTab === 4 && <CostPerEUCalc />}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        /* --- 1. Tax Benefit / Cost Calculator --- */
+        const TaxBenefitCalc = () => {
+            const [expenses, setExpenses] = useState('');
+            const [taxRate, setTaxRate] = useState('');
+
+            const calcBenefit = () => {
+                const e = parseFloat(expenses) || 0;
+                const r = parseFloat(taxRate) || 0;
+                return e * (r / 100);
+            };
+
+            return (
+                <CalcLayout 
+                    title="Tax Benefit (or Cost) from Expenses"
+                    description="Calculates the tax savings generated by business expenses reducing taxable income."
+                >
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <FormulaBox 
+                                main="Tax Benefit = Total Expenses × Tax Rate" 
+                            />
+                            <ExampleProblem text={`26) Compute the Tax (Cost) or Benefit = _________________,\nto a Business that has $400,000 in Expenses and a Tax Rate of 35%.`} />
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                                <h3 className="font-semibold text-lg text-slate-800">Calculator Inputs</h3>
+                                <InputField label="Total Expenses ($)" value={expenses} setValue={setExpenses} />
+                                <InputField label="Tax Rate (%)" value={taxRate} setValue={setTaxRate} />
+                                <ResultBox label="Tax Benefit / Savings" value={`$${calcBenefit().toLocaleString(undefined, {minimumFractionDigits: 2})}`} />
+                            </div>
+                        </div>
+                        <VariablesBox>
+                            <VariableItem name="Total Expenses" desc="The total deductible costs incurred by the business (e.g., $400,000)." />
+                            <VariableItem name="Tax Rate" desc="The percentage at which the company's income is taxed (e.g., 35%)." />
+                            <ProTip text="Because expenses lower your net income, they lower the amount of taxes you owe. This reduction in taxes paid is referred to as a 'Tax Benefit' or 'Tax Shield' of the expense." />
+                        </VariablesBox>
+                    </div>
+                </CalcLayout>
+            );
+        };
+
+        /* --- 2. Breakeven Point Calculator --- */
+        const BreakevenCalc = () => {
+            const [price, setPrice] = useState('');
+            const [vc, setVc] = useState('');
+            const [fc, setFc] = useState('');
+
+            const calcBreakeven = () => {
+                const p = parseFloat(price) || 0;
+                const v = parseFloat(vc) || 0;
+                const f = parseFloat(fc) || 0;
+                const cm = p - v;
+                if (cm <= 0) return "N/A (Price must be > VC)";
+                return Math.ceil(f / cm).toLocaleString() + " Units";
+            };
+
+            const cm = (parseFloat(price) || 0) - (parseFloat(vc) || 0);
+
+            return (
+                <CalcLayout 
+                    title="Breakeven Point (in Units)"
+                    description="Determines the exact number of units you must sell to cover all fixed and variable costs."
+                >
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <FormulaBox 
+                                main="Breakeven Units = Fixed Costs ÷ Contribution Margin per Unit" 
+                                sub="*Contribution Margin per Unit = Sales Price - Variable Cost"
+                            />
+                            <ExampleProblem text={`27) Compute the Breakeven Point in Units = __________________,\nSales price is $300 per unit, Variable Costs are $100 per unit, Fixed Costs are $300,000.`} />
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                                <h3 className="font-semibold text-lg text-slate-800">Calculator Inputs</h3>
+                                <InputField label="Sales Price per Unit ($)" value={price} setValue={setPrice} />
+                                <InputField label="Variable Cost per Unit ($)" value={vc} setValue={setVc} />
+                                <InputField label="Total Fixed Costs ($)" value={fc} setValue={setFc} />
+                                
+                                <div className="pt-2 text-sm text-slate-500 font-medium">
+                                    Contribution Margin: ${cm > 0 ? cm.toLocaleString() : 0} per unit
+                                </div>
+                                <ResultBox label="Breakeven Point" value={calcBreakeven()} />
+                            </div>
+                        </div>
+                        <VariablesBox>
+                            <VariableItem name="Sales Price per Unit" desc="How much you sell one single unit for." />
+                            <VariableItem name="Variable Cost per Unit" desc="Costs that change directly with production (e.g., direct materials, direct labor for one unit)." />
+                            <VariableItem name="Fixed Costs" desc="Costs that stay the same regardless of how many units you produce (e.g., rent, manager salaries)." />
+                            <VariableItem name="Contribution Margin" desc="The amount of revenue from each sale that goes toward paying off fixed costs. Once fixed costs are paid off, this margin contributes directly to profit." />
+                            <ProTip text="Breakeven answers the question: 'How many items do I need to sell to exactly hit $0 profit?' Always round UP to the next whole unit in real-world accounting if you get a decimal." />
+                        </VariablesBox>
+                    </div>
+                </CalcLayout>
+            );
+        };
+
+        /* --- 3. Predetermined MOH Rate Calculator --- */
+        const PredeterminedMOHCalc = () => {
+            const [estMOH, setEstMOH] = useState('');
+            const [estBase, setEstBase] = useState('');
+
+            const calcRate = () => {
+                const moh = parseFloat(estMOH) || 0;
+                const base = parseFloat(estBase) || 0;
+                if (base === 0) return "$0.00";
+                return "$" + (moh / base).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 4}) + " per unit of base";
+            };
+
+            return (
+                <CalcLayout 
+                    title="Predetermined Manufacturing Overhead (MOH) Rate"
+                    description="Calculates the rate used to allocate overhead costs to products during the year."
+                >
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <FormulaBox 
+                                main="Predetermined MOH Rate = Estimated Total MOH ÷ Estimated Total Allocation Base" 
+                            />
+                            <ExampleProblem text={`28) Compute the Predetermined Manufacturing Overhead Rate = _______\n➢ Our Business Used Direct Labor Hours as our Cost Driver\n➢ Given, Estimated MOH Costs = $490,000, Actual MOH Costs = $450,000,\n➢ Estimated Direct Labor Costs = $500,000, Actual Direct Labor Costs = $600,000.`} />
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                                <h3 className="font-semibold text-lg text-slate-800">Calculator Inputs</h3>
+                                <InputField label="Estimated Total MOH Costs ($)" value={estMOH} setValue={setEstMOH} />
+                                <InputField label="Estimated Allocation Base (e.g. DL Hours or DL Costs)" value={estBase} setValue={setEstBase} />
+                                <ResultBox label="Predetermined MOH Rate" value={calcRate()} />
+                            </div>
+                        </div>
+                        <VariablesBox>
+                            <VariableItem name="Estimated Total MOH Costs" desc="The total overhead costs budgeted or guessed at the BEGINNING of the period (e.g., $490,000)." />
+                            <VariableItem name="Estimated Allocation Base" desc="The expected total amount of the cost driver. This could be Direct Labor Hours, Direct Labor Cost, or Machine Hours (e.g., Estimated Direct Labor Costs of $500,000)." />
+                            <ProTip text="BEWARE OF DISTRACTORS! The problem gives you Actual MOH Costs and Actual Direct Labor Costs. You MUST ignore actual costs when calculating the Predetermined rate. Predetermined rates are always set before the year begins using ESTIMATES only." />
+                        </VariablesBox>
+                    </div>
+                </CalcLayout>
+            );
+        };
+
+        /* --- 4. Equivalent Units (Weighted Average) Calculator --- */
+        const EquivalentUnitsCalc = () => {
+            const [completed, setCompleted] = useState('');
+            const [endWip, setEndWip] = useState('');
+            const [endWipPct, setEndWipPct] = useState('');
+
+            const calcEU = () => {
+                const c = parseFloat(completed) || 0;
+                const e = parseFloat(endWip) || 0;
+                const pct = parseFloat(endWipPct) || 0;
+                const eu = c + (e * (pct / 100));
+                return eu.toLocaleString() + " Equivalent Units";
+            };
+
+            return (
+                <CalcLayout 
+                    title="Total Equivalent Units (Weighted Average Method)"
+                    description="Calculates the work done in a period by converting partially completed units into fully completed equivalents."
+                >
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <FormulaBox 
+                                main="Equivalent Units = Units Completed + (Ending WIP Units × % Complete)" 
+                            />
+                            <ExampleProblem text={`29) Compute the Total Equivalent Units of Production = _________\n➢ Units Completed during the month = 300,000 units,\n➢ Beg WIP Units = 100,000 units (50% complete)\n➢ End WIP Units = 100,000 Units (75% Complete) , Use the Weighted Average Method`} />
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                                <h3 className="font-semibold text-lg text-slate-800">Calculator Inputs</h3>
+                                <InputField label="Units Completed & Transferred Out" value={completed} setValue={setCompleted} />
+                                <InputField label="Ending WIP Units" value={endWip} setValue={setEndWip} />
+                                <InputField label="Ending WIP % Complete" value={endWipPct} setValue={setEndWipPct} />
+                                <ResultBox label="Total Equivalent Units" value={calcEU()} />
+                            </div>
+                        </div>
+                        <VariablesBox>
+                            <VariableItem name="Units Completed" desc="Units that were 100% finished during the month and moved to the next department." />
+                            <VariableItem name="Ending WIP Units" desc="Units still on the factory floor at the end of the month." />
+                            <VariableItem name="Ending WIP % Complete" desc="How far along the Ending WIP units are (e.g., 75% complete means we did 3/4 of the work on them)." />
+                            <ProTip text="DISTRACTOR WARNING! The problem provides 'Beg WIP Units' and their '50% complete' status. Under the Weighted Average method, you ignore the Beginning WIP completion percentage completely! You just blend all prior and current work together into 'Units Completed'." />
+                        </VariablesBox>
+                    </div>
+                </CalcLayout>
+            );
+        };
+
+        /* --- 5. Cost Per Equivalent Unit Calculator --- */
+        const CostPerEUCalc = () => {
+            const [dmCost, setDmCost] = useState('');
+            const [dlCost, setDlCost] = useState('');
+            const [mohCost, setMohCost] = useState('');
+            const [euDm, setEuDm] = useState('');
+            const [euConv, setEuConv] = useState('');
+
+            const calcData = () => {
+                const dmC = parseFloat(dmCost) || 0;
+                const dlC = parseFloat(dlCost) || 0;
+                const mohC = parseFloat(mohCost) || 0;
+                const eD = parseFloat(euDm) || 0;
+                const eC = parseFloat(euConv) || 0;
+
+                const convC = dlC + mohC;
+                const costPerDM = eD > 0 ? dmC / eD : 0;
+                const costPerConv = eC > 0 ? convC / eC : 0;
+                const totalCostPerEU = costPerDM + costPerConv;
+
+                return { convC, costPerDM, costPerConv, totalCostPerEU };
+            };
+
+            const res = calcData();
+
+            return (
+                <CalcLayout 
+                    title="Cost Per Equivalent Unit"
+                    description="Calculates how much financial cost is assigned to one equivalent unit of Direct Materials and Conversion."
+                >
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-6">
+                            <FormulaBox 
+                                main="Cost per EU = Total Costs ÷ Total Equivalent Units" 
+                                sub="Remember: Conversion Costs = Direct Labor + Manufacturing Overhead"
+                            />
+                            <ExampleProblem text={`30) Compute the Cost Per Equivalent Unit = _________________\n➢ Total Equivalent Units of Production for Direct Materials = 3,000 and for Conversion= 2,000.\n➢ Total Direct Material Costs were $27,000 and Direct Labor Costs were = $33,000\n➢ MOH Costs were = $11,000`} />
+                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                                <h3 className="font-semibold text-lg text-slate-800 border-b pb-2">1. Input Costs ($)</h3>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <InputField label="DM Cost" value={dmCost} setValue={setDmCost} />
+                                    <InputField label="DL Cost" value={dlCost} setValue={setDlCost} />
+                                    <InputField label="MOH Cost" value={mohCost} setValue={setMohCost} />
+                                </div>
+                                
+                                <h3 className="font-semibold text-lg text-slate-800 border-b pb-2 pt-2">2. Input Equivalent Units (EU)</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <InputField label="EU for DM" value={euDm} setValue={setEuDm} />
+                                    <InputField label="EU for Conversion" value={euConv} setValue={setEuConv} />
+                                </div>
+
+                                <div className="bg-slate-50 p-4 rounded-xl mt-4 space-y-2 border border-slate-100">
+                                    <div className="flex justify-between text-sm text-slate-600">
+                                        <span>Cost per EU (Materials):</span>
+                                        <span className="font-medium">${res.costPerDM.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm text-slate-600">
+                                        <span>Cost per EU (Conversion):</span>
+                                        <span className="font-medium">${res.costPerConv.toFixed(2)}</span>
+                                    </div>
+                                    <div className="pt-2 border-t border-slate-200">
+                                        <ResultBox label="Total Cost per EU" value={`$${res.totalCostPerEU.toFixed(2)}`} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <VariablesBox>
+                            <VariableItem name="Direct Materials (DM)" desc="The raw materials added to the product." />
+                            <VariableItem name="Conversion Costs" desc="The cost to CONVERT the raw materials into a finished good. This is ALWAYS the sum of Direct Labor + Manufacturing Overhead." />
+                            <VariableItem name="Equivalent Units (EU)" desc="The amount of physical work translated into fully completed units. Materials and Conversion usually have different EU numbers because materials are often added at the start, while conversion happens gradually." />
+                            <ProTip text="The trick here is remembering that 'Conversion Costs' isn't explicitly given as one number. You must add Direct Labor ($33,000) and MOH ($11,000) to get Total Conversion Costs ($44,000) before dividing by Conversion EUs." />
+                        </VariablesBox>
+                    </div>
+                </CalcLayout>
+            );
+        };
+
+
+        /* --- Shared UI Components --- */
+
+        const CalcLayout = ({ title, description, children }) => (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-8">
+                    <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">{title}</h2>
+                    <p className="text-slate-500 mt-2 text-lg">{description}</p>
+                </div>
+                {children}
+            </div>
+        );
+
+        const FormulaBox = ({ main, sub }) => (
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl shadow-lg text-white">
+                <div className="flex items-center gap-2 text-blue-200 mb-3 text-sm font-semibold uppercase tracking-wider">
+                    <Info className="w-4 h-4" /> Formula
+                </div>
+                <div className="text-xl md:text-2xl font-bold tracking-tight">{main}</div>
+                {sub && <div className="mt-4 text-blue-200 text-sm italic">{sub}</div>}
+            </div>
+        );
+
+        const ExampleProblem = ({ text }) => (
+            <div className="bg-slate-200/50 border-l-4 border-slate-400 p-4 rounded-r-xl text-sm text-slate-700 shadow-sm mt-4">
+                <div className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
+                    <BookOpen className="w-4 h-4 text-slate-500" />
+                    Example Word Problem
+                </div>
+                <p className="whitespace-pre-line leading-relaxed text-slate-600">{text}</p>
+            </div>
+        );
+
+        const InputField = ({ label, value, setValue }) => (
+            <div className="flex flex-col">
+                <label className="text-sm font-medium text-slate-600 mb-1.5">{label}</label>
+                <input 
+                    type="number" 
+                    className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all w-full text-slate-800 font-medium placeholder-slate-400"
+                    placeholder="0"
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                />
+            </div>
+        );
+
+        const ResultBox = ({ label, value }) => (
+            <div className="mt-6 bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex flex-col items-center justify-center">
+                <span className="text-emerald-700 text-sm font-semibold uppercase tracking-wide mb-1">{label}</span>
+                <span className="text-3xl font-extrabold text-emerald-600">{value}</span>
+            </div>
+        );
+
+        const VariablesBox = ({ children }) => (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit space-y-6">
+                <div>
+                    <h3 className="font-semibold text-lg text-slate-800 flex items-center gap-2 border-b pb-3 mb-4">
+                        <Layers className="w-5 h-5 text-slate-400" />
+                        Variable Explanations
+                    </h3>
+                    <div className="space-y-4">
+                        {children}
+                    </div>
+                </div>
+            </div>
+        );
+
+        const VariableItem = ({ name, desc }) => (
+            <div className="flex gap-3">
+                <ArrowRight className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+                <div>
+                    <strong className="text-slate-800 block text-sm">{name}</strong>
+                    <span className="text-slate-600 text-sm leading-relaxed">{desc}</span>
+                </div>
+            </div>
+        );
+
+        const ProTip = ({ text }) => (
+            <div className="mt-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                <div className="flex items-start gap-3">
+                    <div className="bg-amber-100 p-1 rounded-full flex-shrink-0">
+                        <Info className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div>
+                        <strong className="text-amber-800 text-sm block mb-1">Accounting Pro Tip:</strong>
+                        <p className="text-amber-700 text-sm leading-relaxed">
+                            {text}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
